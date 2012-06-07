@@ -1,4 +1,4 @@
 grails-deploy
 =============
 
-The deploy plugin for Grails
+The servlet container deployment plugin for Grails
