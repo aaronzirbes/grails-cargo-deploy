@@ -1,4 +1,5 @@
 // import cargo stuff
+import org.codehaus.cargo.util.AntTaskFactory
 
 // command line usage
 USAGE = """
@@ -16,6 +17,9 @@ Actions
 
 Options
 -------
+
+	Options are passed in the form --option=value when a value
+	is required, otherwise you can pass a simple --option
 
 	--container <the type of container to deploy to>
 
@@ -93,41 +97,67 @@ def optionsMap = [
 	'username': true,
 	'war': true ]
 
+def allowedActions = [ 'start', 'stop', 'deploy', 'undeploy', 'redeploy']
+
 // TODO: make sure ant can use cargo
 
 // Load grails targets
+includeTargets << grailsScript("_GrailsClasspath")
 includeTargets << grailsScript("_GrailsPackage")
 
 def cargoConfig = [:]
+def cargoAction = ''
 
-target(deploy: "Deploy a WAR file or manage a runnin servlet application") {
+target(deploy: "Deploy a WAR file or manage a running servlet application") {
 	// check for --non-interactive
 	if (isInteractive) {
 		finalMessage "Running in Interactive mode"
 	}
 
+	//// SETUP ANT for CARGO ////
+	def cargo = AntTaskFactory.createTask('cargo.tasks')
+
 	// pull config settings servlet container (params vs. config)
 	configureDeploySettings()
 
-	// TODO: pull action settings (start|stop|depoloy|undeploy|redeploy)
 	// TODO: run desired action
 	ant.fail("This is not finished.")
 }
 
 target(configureDeploySettings: "Configuriing deployment settings") {
-	// Pull in configuration settings
 
-	// Container Type
-	optionsMap.container = grailsSettings.projectWarFile.absolutePath ?: 'tomcat7x'
-	// WAR file location
-	optionsMap.war = grailsSettings.projectWarFile.absolutePath
+	// Pull in configuration settings from BuildConfig.groovy / settings.groovy
+	// Defaults are after the elvis
+	cargoConfig.war = grailsSettings.projectWarFile.absolutePath
+	cargoConfig.container = grailsSettings.config.grails.project.deploy.container ?: 'tomcat6'
+	cargoConfig.password = grailsSettings.config.grails.project.deploy.password ?: ''
+	cargoConfig.username = grailsSettings.config.grails.project.deploy.username ?: ''
+	cargoConfig.port = grailsSettings.config.grails.project.deploy.port ?: 8443
+	cargoConfig.https = grailsSettings.config.grails.project.deploy.https ?: true
+	cargoConfig.server = grailsSettings.config.grails.project.deploy.server ?: 'localhost'
+	cargoConfig.'server-url' = grailsSettings.config.grails.project.deploy.serverUrl ?: null
 
 	// First we configure from the grails settings.
-	
-	
-	optionsMap.eachWithKey{ option, useParam ->
-
+	optionsMap.each{ option, useParam ->
+		// The option was passed...
+		if (argsMap[option] ) {
+			// save it to the cargoConfig map
+			cargoConfig[option] = argsMap[option]
+		}
 	}
+
+	// Figure out the action
+	def action = argsMap.params[0].toLowerCase()
+	if (allowedActions.contains(action)) {
+		cargoAction = action
+	}
+
+	// TODO: remove DEBUGGING
+	finalMessage "Loaded the following options for WAR deployment:"
+	cargoConfig.each{ option, value ->
+		finalMessage "${option} = ${value}"
+	}
+	finalMessage "Action: ${cargoAction.toUpperCase()}"
 
 }
 

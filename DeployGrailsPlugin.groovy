@@ -10,12 +10,12 @@ class DeployGrailsPlugin {
         "grails-app/views/error.gsp"
     ]
 
-    // TODO Fill in these fields
     def title = "Deploy Plugin" // Headline display name of the plugin
-    def author = "Your name"
-    def authorEmail = ""
+    def author = "Aaron J. Zirbes"
+    def authorEmail = "aaron.zirbes@gmail.com"
     def description = '''\
-Brief summary/description of the plugin.
+	This allows deployment of your grails applicaiton WAR file directly to an application server.
+This plugin uses the cargo libraries to deploy WAR files and manage servlet containers.  If you wish to check to see if your servlet container is supported, see: http://cargo.codehaus.org/
 '''
 
     // URL to the plugin's documentation
@@ -24,7 +24,7 @@ Brief summary/description of the plugin.
     // Extra (optional) plugin metadata
 
     // License: one of 'APACHE', 'GPL2', 'GPL3'
-//    def license = "APACHE"
+    def license = "APACHE"
 
     // Details of company behind the plugin (if there is one)
 //    def organization = [ name: "My Company", url: "http://www.my-company.com/" ]
@@ -33,10 +33,10 @@ Brief summary/description of the plugin.
 //    def developers = [ [ name: "Joe Bloggs", email: "joe@bloggs.net" ]]
 
     // Location of the plugin's issue tracker.
-//    def issueManagement = [ system: "JIRA", url: "http://jira.grails.org/browse/GPMYPLUGIN" ]
+    def issueManagement = [ system: "GitHub", url: "https://github.com/aaronzirbes/grails-deploy/issues" ]
 
     // Online location of the plugin's browseable source code.
-//    def scm = [ url: "http://svn.grails-plugins.codehaus.org/browse/grails-plugins/" ]
+    def scm = [ url: "https://github.com/aaronzirbes/grails-deploy" ]
 
     def doWithWebDescriptor = { xml ->
         // TODO Implement additions to web.xml (optional), this event occurs before
