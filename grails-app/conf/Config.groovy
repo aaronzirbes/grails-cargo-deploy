@@ -20,5 +20,7 @@ log4j = {
            'org.hibernate',
            'net.sf.ehcache.hibernate'
 
+	info   'org.zirbes.grails.deploy'
+
     warn   'org.mortbay.log'
 }

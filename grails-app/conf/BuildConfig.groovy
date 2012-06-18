@@ -4,14 +4,15 @@ grails.project.test.reports.dir = "target/test-reports"
 grails.project.target.level = 1.6
 //grails.project.war.file = "target/${appName}-${appVersion}.war"
 
-// Deploy plugin settings
-grails.project.deploy.container = 'tomcat6'
-grails.project.deploy.password = ''
-grails.project.deploy.username = ''
-grails.project.deploy.port = 8443
-grails.project.deploy.https = true
-grails.project.deploy.server = 'localhost'
-grails.project.deploy.serverUrl = null
+// Deploy plugin configuration options and defaults
+// grails.project.deploy.container = 'tomcat6'
+// grails.project.deploy.context = null
+// grails.project.deploy.password = ''
+// grails.project.deploy.username = ''
+// grails.project.deploy.port = 8080
+// grails.project.deploy.https = false
+// grails.project.deploy.hostname = 'localhost'
+// grails.project.deploy.serverUrl = null
 
 grails.project.dependency.resolution = {
     // inherit Grails' default dependencies
@@ -34,11 +35,9 @@ grails.project.dependency.resolution = {
     dependencies {
         // specify dependencies here under either 'build', 'compile', 'runtime', 'test' or 'provided' scopes eg.
 
-		// Could use 'cargo:cargo-core-uberjar:0.7'
-        // runtime 'mysql:mysql-connector-java:5.1.5'
-		runtime("cargo:cargo:0.6") {
-			export = false
-		}
+		//runtime "org.codehaus.cargo:cargo-core:1.2.2"
+		compile "org.codehaus.cargo:cargo-core:1.2.2"
+		compile "org.codehaus.cargo:cargo-core-uberjar:1.2.2"
     }
 
     plugins {
