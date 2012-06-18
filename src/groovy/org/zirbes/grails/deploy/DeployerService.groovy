@@ -30,7 +30,7 @@ class DeployerService {
 	def newRemoteDepoloyer = { remoteContainer -> new Tomcat6xRemoteDeployer(remoteContainer) }
 	def newContainerConfiguration = { new TomcatRuntimeConfiguration() }
 
-	// Here is how you could do this for Glassfish v3
+	// Here is how you might do this for Glassfish v3
 	/*
 	def newContainerWar = { warPath -> new WAR(warPath) }
 	def newRemoteContainer = { containerConfiguration -> new GlassFish3xRemoteContainer(containerConfiguration) }
