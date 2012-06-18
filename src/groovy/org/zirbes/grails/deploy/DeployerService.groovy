@@ -156,12 +156,12 @@ class DeployerService {
 		// Load an empty configuration
 		def containerConfiguration = newContainerConfiguration()
 		// define the server URL
-		def serverURL = null
+		def serverUrl = null
 		if (cargoConfig['server-url']) {
 			if (cargoConfig.container == 'tomcat6') {
-				serverURL = new URL(server.url + '/manager').toExternalForm()
+				serverUrl = new URL(cargoConfig['server-url'] + '/manager').toExternalForm()
 			} else {
-				serverURL = new URL(server.url).toExternalForm()
+				serverUrl = new URL(cargoConfig['server-url']).toExternalForm()
 			}
 		}
 
@@ -170,8 +170,8 @@ class DeployerService {
 		containerConfiguration.setProperty(RemotePropertySet.PASSWORD, cargoConfig.password)
 
 		// Load server info
-		if (serverURL) {
-			containerConfiguration.setProperty(RemotePropertySet.URI, serverURL)
+		if (serverUrl) {
+			containerConfiguration.setProperty(RemotePropertySet.URI, serverUrl)
 		} else {
 			// Load from host/protocol/port
 			containerConfiguration.setProperty(GeneralPropertySet.PROTOCOL, (cargoConfig.https ? 'https' : 'http' ))
