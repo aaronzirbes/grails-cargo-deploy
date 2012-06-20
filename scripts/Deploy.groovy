@@ -1,6 +1,6 @@
 // command line usage
 USAGE = """
-usage: grails deployer <options> < start | stop | deploy | undeploy | redeploy >
+usage: grails deploy [options] [action]
 
 Actions
 -------
@@ -11,6 +11,7 @@ Actions
     undelploy - Removes a running application from a servlet container
     redeploy - Undeploys an existing running application from a servlet
         container and deploys a replacement WAR file
+    list - List running applications (on supported servlet containers)
 
 Options
 -------
@@ -18,104 +19,53 @@ Options
 	Options are passed in the form --option=value when a value
 	is required, otherwise you can pass a simple --option
 
-	--container <the type of container to deploy to>
+	--destination <deployment destination>
 
-	    This can be any type of container that is supported by cargo.
-		Some common containers are: tomcat6x, tomcat7x, orion2x, etc...
-		You can find a list of supported containers at 
-		http://cargo.codehaus.org/
+	    The destination to deploy to.  This defaults to 'defaults'.  The
+		default and other configurations can be configured in your 
+		BuildConfig.groovy or settings.groovy file.  See the documentation
+		for details.
 
-		The equivalent setting in BuildConfig is:
-		    grails.project.deploy.container
+	--destination-group <deployment destination group>
 
-    --context <application context>
+	    A group of destination servers to deploy the application to.  These
+		must be configured in your BuildConfig.groovy or settings.groovy
+		file.  See the documentation for details.
 
-		This is the name of the application context used to start, 
-		stop, or undeploy an application.  If a WAR file is provided
-		then the context can be imputed from the WAR file, making
-		this optional.
+    --help
 
-		The equivalent setting in BuildConfig.groovy is:
-		    grails.project.war.context
-
-	--password <password to authenticate with>
-
-	    The password you will connect to the servlet container using
-
-		The equivalent setting in BuildConfig is:
-		    grails.project.deploy.password
-
-	--port <tcp port>
-
-	    This is the TCP port that the app server is listening on
-
-		The equivalent setting in BuildConfig is:
-		    grails.project.deploy.port
-
-	--https
-
-	    This flags whether or not to connect to the servlet container 
-		is using SSL
-
-		The equivalent setting in BuildConfig is:
-		    grails.project.deploy.https = true
-
-	--hostname <server FQDN or IP address>
-
-	    This is the hostname or IP address of the servlet container
-
-		The equivalent setting in BuildConfig is:
-		    grails.project.deploy.hostname
-
-	--server-url <URL to app server>
-
-	    This is the full URL of the servlet container you wish to
-		deploy to.  Do NOT use the --port, --https or --server 
-		options if you use this option as they will be overwritten.
-
-		The equivalent setting in BuildConfig is:
-		    grails.project.deploy.serverUrl
-		
-	--username <username to authenticate as>
-
-	    The password you will connect to the servlet container using
-
-		The equivalent setting in BuildConfig is:
-		    grails.project.deploy.username
+		display this help screen
 
     --war <filename.war>
 
 		This is the name of the WAR file to deploy or redeploy
 
-		The equivalent setting in BuildConfig.groovy is:
+		This will override the following setting in BuildConfig.groovy:
 		    grails.project.war.file
+
+	--set-CUSTOM-SETTING
+
+	    This allows you to override any configuration setting
+		used in the deployment configuration file. Any dots
+	    are replaced by dashes.  For example
+		'--set-remote-password=SuperDuperSecret' would override
+		the 'remote.password' setting in your configuration file.
 """
 
-// This is a list of all accepted options
-// and whether or not they take a string as
-// a parameter
-def optionsMap = [
-	'container': true,
-	'context': true,
-	'password': true,
-	'port': true,
-	'https': false,
-	'hostname': true,
-	'server-url': true,
-	'username': true,
-	'war': true ]
-
-def allowedActions = [ 'start', 'stop', 'deploy', 'undeploy', 'redeploy']
+def allowedActions = [ 'start', 'stop', 'deploy', 'undeploy', 'redeploy', 'list' ]
 
 // Load grails targets
 includeTargets << grailsScript("_GrailsBootstrap")
 
-def cargoConfig = [:]
-def cargoAction = ''
+def deployDestination
+def deployDestinationGroup
+def deployWar
+def deployAction = 'deploy'
+def deployConfigNames = [] as Set
+def deployConfig = [:]
 
 target(deploy: "Deploy a WAR file or manage a running servlet application") {
 	// we need to load the app to get the cargo dependencies in memory
-	//depends(loadApp, configureApp)
 	depends(loadApp)
 	// check for --non-interactive
 	if (!isInteractive) {
@@ -124,88 +74,59 @@ target(deploy: "Deploy a WAR file or manage a running servlet application") {
 
 	configureDeploySettings()
 
-	// Load the cargo ant factory builder
-	def DeployerService = classLoader.loadClass("org.zirbes.grails.deploy.DeployerService")
-	def WarFile = classLoader.loadClass("org.zirbes.grails.deploy.WarFile")
-
-	def warFile = WarFile.newInstance(cargoConfig.war)
-
+	// instantiate the war file
+	def warFile = new File(deployWar)
 	if (! warFile ) {
-		errorMessage "Unable to find WAR file: ${cargoConfig.war}"
+		errorMessage "Unable to find WAR file: ${deployWar}"
 		return 1
 	} else {
-		printMessage "Application context: ${warFile.context} loaded from ${warFile}."
+		printMessage "Application context loaded from ${warFile}."
 	}
 
 	// pull config settings servlet container
-	def deployerService = DeployerService.newInstance(cargoConfig)
+	def DeployerService = classLoader.loadClass("org.zirbes.grails.deploy.DeployerService")
+	def deployerService = DeployerService.newInstance()
+	def deployableWar = deployerService.getWar(warFile)
 
-	def appContext = warFile.context ?: cargoConfig.context
+	// dpeloy the app to the servlet container(s)
+	def j = deployDestinationGroup.size()
+	deployDestinationGroup.eachWithIndex{ dest, i ->
+		def startTime = new Timer()
+		// run the action
+		printMessage "Running '${deployAction}' on '${warFile}' to '${dest}' (${i + 1}/$j)..."
 
-	switch (cargoAction) {
-		case 'start':
-			printMessage "Starting application context: ${appContext}"
-			deployerService.startWebApp(appContext)
-			break;
-		case 'stop':
-			printMessage "Starting application context: ${appContext}"
-			deployerService.stopWebApp(appContext)
-			break;
-		case 'undeploy':
-			printMessage "Undeploying application context: ${appContext}"
-			deployerService.unDeployWebApp(appContext)
-			break;
-		case 'deploy':
-			printMessage "Starting application context: ${warFile.context}"
-			deployerService.deployWebApp(warFile.warFilePath)
-			break;
-		case 'redeploy':
-			printMessage "Redeploying application context: ${warFile.context}"
-			deployerService.reDeployWebApp(warFile.warFilePath)
-			break;
-		default: 
-			errorMessage "Invalid action: ${cargoAction}"
-			return 1
+		// Load the cargo ant factory builder
+		def ConfigBuilder = classLoader.loadClass("org.zirbes.grails.deploy.ConfigBuilder")
+		// Instantiate the Config Builder
+		deployConfig = ConfigBuilder.loadConfiguration(dest, argsMap, grailsSettings.config.grails.plugins.deploy.destinations)
+		// Run the action
+		deployerService.runAction(deployConfig, warFile, deployAction)
+
+		def elapsedTime = ( new Timer() ) - startTime
+		finalMessage "Finished '${deployAction}' on '${warFile}' to '${dest}' (${elapsedTime / 1000} s)."
 	}
 }
 
-target(configureDeploySettings: "Configuriing deployment settings") {
+target(configureDeploySettings: "Configuring deployment settings") {
 
-	// Pull in configuration settings from BuildConfig.groovy / settings.groovy
-	// Defaults are after the elvis
-	cargoConfig.war = grailsSettings.projectWarFile.absolutePath
-	cargoConfig.container = grailsSettings.config.grails.project.deploy.container ?: 'tomcat6'
-	cargoConfig.context = grailsSettings.config.grails.project.deploy.context ?: null
-	cargoConfig.password = grailsSettings.config.grails.project.deploy.password ?: ''
-	cargoConfig.username = grailsSettings.config.grails.project.deploy.username ?: ''
-	cargoConfig.port = grailsSettings.config.grails.project.deploy.port ?: 8080
-	cargoConfig.https = grailsSettings.config.grails.project.deploy.https ?: false
-	cargoConfig.hostname = grailsSettings.config.grails.project.deploy.hostname ?: 'localhost'
-	cargoConfig.'server-url' = grailsSettings.config.grails.project.deploy.serverUrl ?: null
+	deployDestination = argsMap.destination ?: 'defaults'
+	deployDestinationGroup = argsMap.'destination-group' ?: null
+	deployWar = argsMap.war ?: grailsSettings.projectWarFile.absolutePath
+	deployAction = argsMap.params[0]?.toLowerCase() ?: 'deploy'
 
-	// First we configure from the grails settings.
-	optionsMap.each{ option, useParam ->
-		// The option was passed...
-		if (argsMap[option] ) {
-			// save it to the cargoConfig map
-			cargoConfig[option] = argsMap[option]
-		}
+	// If no set was loaded, load a set of a single config
+	if (!deployDestinationGroup) {
+		deployDestinationGroup = [ deployDestination ]
 	}
 
 	// Figure out the action
 	def action = argsMap.params[0]?.toLowerCase()
 	if (action && allowedActions.contains(action)) {
-		cargoAction = action
+		deployAction = action
+	} else {
+		errorMessage "Invalid deploy action: '${action}'."
 	}
 
-	// DEBUGGING helpers
-	/*
-	finalMessage "Loaded the following options for WAR deployment:"
-	cargoConfig.each{ option, value ->
-		finalMessage "${option} = ${value}"
-	}
-	finalMessage "Action: ${cargoAction.toUpperCase()}"
-	*/
 }
 
 // Helper Functions

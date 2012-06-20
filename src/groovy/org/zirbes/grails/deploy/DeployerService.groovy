@@ -1,201 +1,126 @@
 package org.zirbes.grails.deploy
 
-//import org.codehaus.cargo.container.glassfish.GlassFish3x6xRemoteContainer
-//import org.codehaus.cargo.container.glassfish.GlassFish3x6xRemoteDeployer
-//import org.codehaus.cargo.container.glassfish.GlassFish3xRuntimeConfiguration
-import org.codehaus.cargo.container.deployable.WAR
+import org.codehaus.cargo.container.Container
+import org.codehaus.cargo.container.ContainerType
+import org.codehaus.cargo.container.configuration.Configuration
+import org.codehaus.cargo.container.configuration.ConfigurationType
+import org.codehaus.cargo.container.deployable.DeployableType
+import org.codehaus.cargo.container.deployer.DeployerType
 import org.codehaus.cargo.container.property.GeneralPropertySet
 import org.codehaus.cargo.container.property.RemotePropertySet
 import org.codehaus.cargo.container.property.ServletPropertySet
-import org.codehaus.cargo.container.tomcat.Tomcat6xRemoteContainer
-import org.codehaus.cargo.container.tomcat.Tomcat6xRemoteDeployer
-import org.codehaus.cargo.container.tomcat.TomcatRuntimeConfiguration
-import org.codehaus.cargo.container.tomcat.TomcatWAR
-import org.codehaus.groovy.grails.commons.ConfigurationHolder
-import org.codehaus.groovy.grails.web.context.ServletContextHolder
+import org.codehaus.cargo.generic.DefaultContainerCapabilityFactory
+import org.codehaus.cargo.generic.DefaultContainerFactory
+import org.codehaus.cargo.generic.configuration.DefaultConfigurationFactory
+import org.codehaus.cargo.generic.deployable.DefaultDeployableFactory
+import org.codehaus.cargo.generic.deployer.DefaultDeployerFactory
 
 class DeployerService {
 
 	private Map configuration
 
-	DeployerService(Map _configuration) {
-		configuration = _configuration
+	def getSettingConstantsLink() {
+		 return new URL('http://cargo.codehaus.org/maven-site/cargo-core/apidocs/constant-values.html')
 	}
 
-	// These are the default closures for Tomcat 6.x, but they
-	// can be overwrittent to return constructors for any 
-	// servlet container supported by Cargo
-	def newContainerWar = { warPath -> new TomcatWAR(warPath) }
-	def newRemoteContainer = { containerConfiguration -> new Tomcat6xRemoteContainer(containerConfiguration) }
-	def newRemoteDepoloyer = { remoteContainer -> new Tomcat6xRemoteDeployer(remoteContainer) }
-	def newContainerConfiguration = { new TomcatRuntimeConfiguration() }
-
-	// Here is how you might do this for Glassfish v3
-	/*
-	def newContainerWar = { warPath -> new WAR(warPath) }
-	def newRemoteContainer = { containerConfiguration -> new GlassFish3xRemoteContainer(containerConfiguration) }
-	def newRemoteDepoloyer = { remoteContainer -> new GlassFish3xRemoteDeployer(remoteContainer) }
-	def newContainerConfiguration = { new GlassFish3xRuntimeConfiguration() }
-	*/
-
-	private def serviceWebApp(String context, String action) {
-		Boolean returnStatus = false
-
-		def deployer = getDeployer()
-		if (deployer) {
-			// create fake war name
-			def warName = context + '.war'
-
-			// creat fake war object
-			def deployable = new WAR(warName)
-
-			def deployedApps = getDeployedApps(deployer)
-
-			log.debug "Deployed Apps:"
-			deployedApps.each{ da ->
-				log.debug "appName: ${da.appName}"
-				log.debug "  server: ${da.server}"
-				log.debug "  url: ${da.url}"
-				log.debug "  context: ${da.context}"
-				log.debug "  status: ${da.status}"
-			}
-
-			def expectedStatus = 'UNKOWN'
-
-			if (action == 'undeploy') {
-				expectedStatus = [ 'running', 'stopped' ]
-			} else if (action == 'start') {
-				expectedStatus = [ 'stopped' ]
-			} else if (action == 'stop') {
-				expectedStatus = [ 'running' ]
-			}
-
-			if ( deployedApps.find{ it.appName == context && expectedStatus.contains( it.status ) } ) {
-				if (action == 'undeploy') {
-					log.info "Undeploying ${context}"
-					returnStatus = deployer.undeploy(deployable)
-				} else if (action == 'start') {
-					log.info "Starting ${context}"
-					returnStatus = deployer.start(deployable)
-				} else if (action == 'stop') {
-					log.info "Stopping ${context}"
-					returnStatus = deployer.stop(deployable)
-				}
-			} else {
-				log.info "application context '${context}' isn't ${expectedStatus}, can't ${action}!"
-			}
-		}
-		return returnStatus
-	}
-
-	def startWebApp(String context) {
-		serviceWebApp(context, 'start')
-	}
-	def stopWebApp(String context) {
-		serviceWebApp(context, 'stop')
-	}
-	def unDeployWebApp(String context) {
-		serviceWebApp(context, 'undeploy')
-	}
-
-	/** Redeploy a web app to a servlet containter.
-	 *  Right now, this only works with tomcat.
-	 */
-	def reDeployWebApp(String warFileName) {
-
-		Boolean returnStatus = false
-
-		def warFile = new WarFile(warFileName)
-
-		if (warFile && warFile.deployable) {
-			log.info "Deploying ${warFile}..."
-
-			def deployer = getDeployer()
-			if (deployer) {
-				def deployable = newContainerWar(warFile.warFilePath)
-
-				def deployedApps = getDeployedApps(deployer)
-
-				if (deployedApps.find{ it.appName == warFile.context}) {
-					log.info "Redeploying ${warFile.context}"
-					returnStatus = deployer.redeploy(deployable)
-				} else {
-					log.info "Deploying ${warFile.context}"
-					returnStatus = deployer.deploy(deployable)
-				}
-			}
-		}
-		return returnStatus
-	}
-
-	/** Deploy a web app to a servlet containter */
-	def deployWebApp(String warFileName) {
-
-		Boolean returnStatus = false
-
-		def warFile = new WarFile(warFileName)
-
-		if (warFile && warFile.deployable) {
-			log.info "Deploying ${warFile}..."
-
-			def deployer = getDeployer()
-			if (deployer) {
-				def deployable = newContainerWar(warFile.warFilePath)
-
-				log.info "Deploying ${warFile.context}"
-				returnStatus = deployer.deploy(deployable)
-			}
-		}
-		return returnStatus
-	}
-
-	/** Configure a remote servlet container. */
-	def configureContainer() {
-
-		def cargoConfig = configuration
-		// Load an empty configuration
-		def containerConfiguration = newContainerConfiguration()
-		// define the server URL
-		def serverUrl = null
-		if (cargoConfig['server-url']) {
-			if (cargoConfig.container == 'tomcat6') {
-				serverUrl = new URL(cargoConfig['server-url'] + '/manager').toExternalForm()
-			} else {
-				serverUrl = new URL(cargoConfig['server-url']).toExternalForm()
-			}
-		}
-
-		// Load username/password
-		containerConfiguration.setProperty(RemotePropertySet.USERNAME, cargoConfig.username)
-		containerConfiguration.setProperty(RemotePropertySet.PASSWORD, cargoConfig.password)
-
-		// Load server info
-		if (serverUrl) {
-			containerConfiguration.setProperty(RemotePropertySet.URI, serverUrl)
+	def checkConfiguration(Map configuration) {
+		def containerId = config.staging.containerId
+		def containerCompatability = new DefaultContainerCapabilityFactory().createContainerCapability(containerId)
+		
+		if (! containerCompatability.supportsDeployableType(DeployableType.WAR) ){
+			return false
 		} else {
-			// Load from host/protocol/port
-			containerConfiguration.setProperty(GeneralPropertySet.PROTOCOL, (cargoConfig.https ? 'https' : 'http' ))
-			containerConfiguration.setProperty(GeneralPropertySet.HOSTNAME, cargoConfig.hostname)
-			containerConfiguration.setProperty(ServletPropertySet.PORT, cargoConfig.port.toString())
+			return true
 		}
-
-		return newRemoteContainer(containerConfiguration)
 	}
 
-	/** Get a list of deployed applications from an application server.
-	 * Right now this only works with a Tomcat Server
+	def getWar(Map configuration, File warFile) {
+		new DefaultDeployableFactory().createDeployable(containerId, warFile.absolutePath, DeployableType.WAR)
+	}
+
+	def getConfig(Map configuration) {
+		def containerId = configuration?.containerId ?: 'tomcat7x'
+		def containerType = configuration.containerType ?: 'remote'
+		def configurationType = configuration?.configurationType ?: 'runtime'
+
+		def configurationProperties = config.properties
+
+		def containerTypeInstance = new ContainerType(containerType)
+		def configurationTypeInstance = new ConfigurationType(configurationType)
+
+
+		def containerConfig = new DefaultConfigurationFactory()
+			.createConfiguration(containerId, containerTypeInstance, configurationTypeInstance)
+
+		// Apply Configuration Settings
+		configurationProperties.each{ key, value ->
+			    containerConfig.setProperty(key.toString(), value.toString())
+		}
+
+		return containerConfig
+	}
+
+	def getContainer(Map configuration) {
+		def containerId = configuration?.containerId ?: 'tomcat7x'
+		def containerType = configuration.containerType ?: 'remote'
+
+		def containerTypeInstance = new ContainerType(containerType)
+
+		def containerConfig = getConfig(configuration)
+
+		new DefaultContainerFactory().createContainer(containerId, containerTypeInstance, containerConfig)
+	}
+
+	def getDeployer(Map configuration) {
+
+		def deployerType = configuration?.deployerType ?: 'remote'
+
+		def deployerTypeInstance = new DeployerType(deployerType)
+
+		def container = getContainer(configuration)
+
+		new DefaultDeployerFactory().createDeployer(tomcatContainer, deployerTypeInstance)
+	}
+
+	def runAction(Map configuration, File warFile, String action) {
+		def deployer = getDeployer(configuration)
+		def war = getWar(warFile)
+
+		switch (action) {
+			case "deploy":
+				return deployer.deploy(war)
+				break
+			case "redeploy":
+				return deployer.redeploy(war)
+				break
+			case "start":
+				return deployer.start(war)
+				break
+			case "stop":
+				return deployer.start(war)
+				break
+			case "undeploy":
+				return deployer.start(war)
+				break
+			case "list":
+				return getDeployedApps(deployer)
+				break
+			default:
+				return false
+		}
+
+	}
+
+	/**
+	 * Get a list of deployed applications from a tomcat application server.
 	 */
 	def getDeployedApps(deployer) {
 
 		Set<DeployedApp> appList = new HashSet<DeployedApp>()
 
-		if (deployer) {
+		if (deployer?.respondsTo('list')) {
 
-			def containerConfiguration = deployer.getConfiguration()
-			def url = containerConfiguration.getPropertyValue(RemotePropertySet.URI)?.replace(/\/manager/, '')
-			def serverName = configuration?.hostname ?: configuration?.serverUrl
-
-			def deployerList = deployer?.list()
+			def deployerList = deployer.list()
 			if (deployerList) {
 				def applications = deployerList.replace('\r','')?.split('\n')
 
@@ -208,8 +133,6 @@ class DeployerService {
 							def appName = parts[3]
 							if (! appName.contains('/') ) {
 								def deployedApp = new DeployedApp()
-								deployedApp.server = serverName
-								deployedApp.url = url
 								deployedApp.context = parts[0]
 								deployedApp.appName = appName
 								deployedApp.status = parts[1]
@@ -223,12 +146,17 @@ class DeployerService {
 				}
 			}
 		}
-		return appList
-	}
 
-	/** Builds and returns a remote deployer from the configuration */
-	def getDeployer() {
-		return newRemoteDepoloyer( configureContainer() )
+		log.debug "Deployed Apps:"
+		appList.each{ da ->
+			log.debug "appName: ${da.appName}"
+			log.debug "  server: ${da.server}"
+			log.debug "  url: ${da.url}"
+			log.debug "  context: ${da.context}"
+			log.debug "  status: ${da.status}"
+		}
+
+		return appList
 	}
 }
 

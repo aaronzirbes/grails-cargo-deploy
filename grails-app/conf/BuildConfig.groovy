@@ -4,15 +4,44 @@ grails.project.test.reports.dir = "target/test-reports"
 grails.project.target.level = 1.6
 //grails.project.war.file = "target/${appName}-${appVersion}.war"
 
-// Deploy plugin configuration options and defaults
-// grails.project.deploy.container = 'tomcat6'
-// grails.project.deploy.context = null
-// grails.project.deploy.password = ''
-// grails.project.deploy.username = ''
-// grails.project.deploy.port = 8080
-// grails.project.deploy.https = false
-// grails.project.deploy.hostname = 'localhost'
-// grails.project.deploy.serverUrl = null
+// Deploy plugin configurations per server
+// These can also go in your ~/.grails/setings.groovy file
+
+// default deploy settings
+grails.plugins.deploy.defaults = {
+	containerId = 'tomcat7x'
+	properties = {
+		remote.username = 'autodeployer'
+		remote.password = 'UGheoqu0Washu2aa0Li1'
+		protocol = 'http'
+		hostname = 'localhost'
+		servlet.port = 8080
+}
+
+// These are groups of servers to deploy to
+grails.plugins.deploy.groups = {
+	all = [ 'staging', 'production' ]
+}
+
+// these are alternate destinations to deploy to
+grails.plugins.deploy.destinations = {
+	// staging deploy destination
+	staging = {
+		properties = {
+			protocol = 'https'
+			hostname = 'testing.example.org'
+			servlet.port = 8443
+		}
+	}
+	// production deploy destination
+	production = {
+		properties = {
+			protocol = 'https'
+			hostname = 'www.example.org'
+			servlet.port = 443
+		}
+	}
+}
 
 grails.project.dependency.resolution = {
     // inherit Grails' default dependencies
