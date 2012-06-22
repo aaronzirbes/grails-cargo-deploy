@@ -1,6 +1,7 @@
 package org.zirbes.grails.deploy
 
 import org.codehaus.cargo.container.Container
+import org.codehaus.cargo.container.ContainerException
 import org.codehaus.cargo.container.ContainerType
 import org.codehaus.cargo.container.configuration.Configuration
 import org.codehaus.cargo.container.configuration.ConfigurationType
@@ -15,12 +16,21 @@ import org.codehaus.cargo.generic.configuration.DefaultConfigurationFactory
 import org.codehaus.cargo.generic.deployable.DefaultDeployableFactory
 import org.codehaus.cargo.generic.deployer.DefaultDeployerFactory
 
+/** This service is a groovy wrapper for a lot of the cargo factory classes
+ * and for common deployment commands. It uses configuration Maps that are 
+ * returned by the static ConfigurationBuilder.loadConfiguration() method, but 
+ * will work with any kind of Map as long as the proper attributes are included.
+ *
+ * More information about cargo can be found at http://cargo.codehaus.org
+ */
 class DeployerService {
 
+	/** Returns a URL listing all the available propertySet values you can use within a deployment destination */
 	def getSettingConstantsLink() {
 		 return new URL('http://cargo.codehaus.org/maven-site/cargo-core/apidocs/constant-values.html')
 	}
 
+	/** Checks to ensure a configuration supports deployment of a WAR file */
 	def checkConfiguration(configuration) {
 		def containerId = config.staging.containerId
 		def containerCompatability = new DefaultContainerCapabilityFactory().createContainerCapability(containerId)
@@ -32,11 +42,20 @@ class DeployerService {
 		}
 	}
 
+	/** Returns a Deployable object for the specific containerId you have configured.
+	 * 
+	 *  @param configuration a configuration object as returned by the ConfigurationBuilder.
+	 *  @param warFile	a File object representing the WAR file you wish to deploy.
+	 */
 	def getWar(configuration, File warFile) {
 		def containerId = configuration?.containerId ?: 'tomcat7x'
 		new DefaultDeployableFactory().createDeployable(containerId, warFile.absolutePath, DeployableType.WAR)
 	}
 
+	/** Returns a Configuration object for the specific configuration destination you are using.
+	 *
+	 *  @param configuration a configuration object as returned by the ConfigurationBuilder.
+	 */
 	def getConfig(configuration) {
 		def containerId = configuration?.containerId ?: 'tomcat7x'
 		def containerType = configuration.containerType ?: 'remote'
@@ -60,6 +79,10 @@ class DeployerService {
 		return containerConfig
 	}
 
+	/** Returns a Container object for the specific configuration destination you are using.
+	 *
+	 *  @param configuration a configuration object as returned by the ConfigurationBuilder.
+	 */
 	def getContainer(configuration) {
 		def containerId = configuration?.containerId ?: 'tomcat7x'
 		def containerType = configuration.containerType ?: 'remote'
@@ -71,6 +94,10 @@ class DeployerService {
 		new DefaultContainerFactory().createContainer(containerId, containerTypeInstance, containerConfig)
 	}
 
+	/** Returns a Deployer object for the specific configuration destination you are using.
+	 *
+	 *  @param configuration a configuration object as returned by the ConfigurationBuilder.
+	 */
 	def getDeployer(configuration) {
 
 		def deployerType = configuration?.deployerType ?: 'remote'
@@ -82,6 +109,13 @@ class DeployerService {
 		new DefaultDeployerFactory().createDeployer(container, deployerTypeInstance)
 	}
 
+	/** Runs an option on a particular deployment destination for the specific configuraiton
+	 * destination that you are using.
+	 *
+	 *  @param configuration	a configuration object as returned by the ConfigurationBuilder.
+	 *  @param warFile			a File object representing the WAR file you wish to deploy.
+	 *  @param action			a String containing one of the supported actions of your Deployer. The available options are 'deploy', 'redeploy', 'start', 'stop', 'undeploy', and 'list'.  List is only supported on a small set of containers, one of which is Tomcat.
+	 */
 	def runAction(configuration, File warFile, String action) {
 		def deployer = getDeployer(configuration)
 		def war = getWar(configuration, warFile)
@@ -111,8 +145,9 @@ class DeployerService {
 
 	}
 
-	/**
-	 * Get a list of deployed applications from a tomcat application server.
+	/** Returns a list of deployed applications from a tomcat application server.
+	 * 
+	 *  @param deployer	a Deployer object that supports the .list() method.
 	 */
 	def getDeployedApps(deployer) {
 
@@ -142,20 +177,12 @@ class DeployerService {
 						}
 					}
 				} else {
-					log.error "Failed to get deployed application status, read: ${result}"
+					throw new ContainerException("Unable to parse .list() results for container.  Expected result to begin with 'OK -', but instead got: '${result}'.")
 				}
 			}
+		} else {
+			throw new ContainerException(".list() is not supported on this Deployer.")
 		}
-
-		log.debug "Deployed Apps:"
-		appList.each{ da ->
-			log.debug "appName: ${da.appName}"
-			log.debug "  server: ${da.server}"
-			log.debug "  url: ${da.url}"
-			log.debug "  context: ${da.context}"
-			log.debug "  status: ${da.status}"
-		}
-
 		return appList
 	}
 }

@@ -1,0 +1,5 @@
+
+There are many automated deployment solutions out there: chef, puppet, ant and gradle, among others.  This plugin aims to let you deploy your grails application from within the Grails environment by leveraging the [cargo|http://cargo.codehaus.org/] libraries.
+
+To find out if your specific set of servlet containers are supported, please visit the [cargo|http://cargo.codehaus.org/] page and look under *Container Support*.
+

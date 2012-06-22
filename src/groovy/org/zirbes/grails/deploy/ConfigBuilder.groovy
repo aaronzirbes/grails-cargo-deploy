@@ -1,7 +1,11 @@
 package org.zirbes.grails.deploy
 
 /** This class is used to ease the loading of configuration
- * settings coming from a heirarchy of locations
+ * settings coming from a heirarchy of locations.  Alternatively
+ * use can use the  getDefaultConfiguration() method to get a
+ * default configuration map that you can modify for use without
+ * loading any configuration settings from the config files or
+ * command line parameters.
  */
 class ConfigBuilder {
 
@@ -11,7 +15,11 @@ class ConfigBuilder {
 	// 3. Defaults setting
 	// 4. Plugin default
 
-	static def loadConfiguration(destination, argsMap, destConfigs) {
+	/** This returns a Map of settings used by the DeployerService to 
+	 *  configure containers and deployers for use in deploying war files
+	 *  and controlling applications already deployed to a container.
+	 */
+	static Map loadConfiguration(String destination, Map argsMap, destConfigs) {
 
 		def deployConfig = [:]
 		deployConfig.propertySet = [:]
@@ -50,5 +58,36 @@ class ConfigBuilder {
 		}
 
 		return deployConfig
+	}
+
+	/** Returns a default configuration map that can be used
+	 *  without needing to load settings from the BuildConfig,
+	 *  settings.groovy, or command line args. This is mostly
+	 *  useful if you're using the service directly within your
+	 *  application rather than through the grails 'deploy'
+	 *  command.
+	 *
+	 *  It will return the Map:
+	    <code>
+		[	containerId: 'tomcat7x',
+			containerType: 'remote',
+			deployerType: 'remote',
+			configurationType: 'runtime',
+			propertSet: [ 
+				protocol: 'http',
+				hostname: 'localhost',
+				'servlet.port': 8080 ] ]
+		</code>
+	 */
+	static Map getDefaultConfiguration() {
+		return [
+			containerId: 'tomcat7x',
+			containerType: 'remote',
+			deployerType: 'remote',
+			configurationType: 'runtime',
+			propertSet: [ 
+				protocol: 'http',
+				hostname: 'localhost',
+				'servlet.port': 8080 ] ]
 	}
 }

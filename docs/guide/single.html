@@ -1,0 +1,320 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+    <head>
+        <title>Deploy Plugin 0.1</title>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <link rel="stylesheet" href="../css/main.css" type="text/css" media="screen, print" title="Style" charset="utf-8" />
+        <link rel="stylesheet" href="../css/pdf.css" type="text/css" media="print" title="PDF" charset="utf-8" />
+    <script type="text/javascript">
+function addJsClass(el) {
+    var classes = document.body.className.split(" ");
+    classes.push("js");
+    document.body.className = classes.join(" ");
+}
+    </script>
+    </head>
+
+    <body class="body" onload="addJsClass();">
+        <div id="navigation">
+            <ul>
+                <li>
+                    <div id="nav-summary" onmouseover="toggleNavSummary(false)" onmouseout="toggleNavSummary(true)">
+                        <a href="../guide/index.html" class="button">Table of contents</a>
+                        <div id="nav-summary-childs" style="display:none;">
+                            
+                            <div class="toc-item" style="margin-left:0"><a href="#introduction"><strong>1</strong><span>Introduction</span></a></div>
+                            
+                            <div class="toc-item" style="margin-left:0"><a href="#installation"><strong>2</strong><span>Installation</span></a></div>
+                            
+                            <div class="toc-item" style="margin-left:0"><a href="#configuration"><strong>3</strong><span>Configuration</span></a></div>
+                            
+                            <div class="toc-item" style="margin-left:0"><a href="#properties"><strong>4</strong><span>PropertySet options</span></a></div>
+                            
+                            <div class="toc-item" style="margin-left:0"><a href="#usage"><strong>5</strong><span>Usage</span></a></div>
+                            
+                        </div>
+                    </div>
+                </li>
+                <li class="separator selected">
+                    <a id="ref-button" onclick="localToggle(); return false;" href="#">Quick Reference</a>
+                </li>
+            </ul>
+        </div>
+        <div id="header">
+            <div class="images clearfix">
+                
+                
+            </div>
+            <p>	This allows deployment of your grails applicaiton WAR file directly to an application server.
+This plugin uses the cargo libraries to deploy WAR files and manage servlet containers.  If you wish to check to see if your servlet container is supported, see: http://cargo.codehaus.org/
+</p>
+        </div>
+
+
+        <table id="colset" border="0" cellpadding="0" cellspacing="0">
+            <tr>
+                <td id="col1">
+                    <div id="main" class="corner-all">
+
+                        <span id='toggle-col1' class="toggle">(<a href="#" onclick="localToggle(); return false;">Quick Reference</a>)</span>
+
+                        <div class="project">
+                            <h1>Deploy Plugin - Reference Documentation</h1>
+                            <p><strong>Authors:</strong> Aaron J. Zirbes</p>
+                            <p><strong>Version:</strong> 0.1</p>
+                            
+                        </div>
+
+                        
+                        <div id="table-of-content">
+                            <h2>Table of Contents</h2>
+                            
+                            <div class="toc-item" style="margin-left:0px"><a href="#introduction"><strong>1</strong><span>Introduction</span></a></div>
+                            
+                            <div class="toc-item" style="margin-left:10px"><a href="#history"><strong>1.1</strong><span>History</span></a></div>
+                            
+                            <div class="toc-item" style="margin-left:0px"><a href="#installation"><strong>2</strong><span>Installation</span></a></div>
+                            
+                            <div class="toc-item" style="margin-left:0px"><a href="#configuration"><strong>3</strong><span>Configuration</span></a></div>
+                            
+                            <div class="toc-item" style="margin-left:0px"><a href="#properties"><strong>4</strong><span>PropertySet options</span></a></div>
+                            
+                            <div class="toc-item" style="margin-left:0px"><a href="#usage"><strong>5</strong><span>Usage</span></a></div>
+                            
+                            <div style="clear:both" ></div>
+                        </div>
+                        
+                        
+
+<h1 id="introduction">1 Introduction</h1>
+
+There are many automated deployment solutions out there: chef, puppet, ant and gradle, among others.  This plugin aims to let you deploy your grails application from within the Grails environment by leveraging the <a href="http://cargo.codehaus.org/" target="blank">cargo</a> libraries.<p class="paragraph"/>To find out if your specific set of servlet containers are supported, please visit the <a href="http://cargo.codehaus.org/" target="blank">cargo</a> page and look under <strong class="bold">Container Support</strong>.<p class="paragraph"/>
+
+
+<h2 id="history">1.1 History</h2>
+<ul class="star">
+<li>Initial public release 0.1</li>
+<ul class="star">
+<li>June 22th, 2012</li>
+</ul></ul><p class="paragraph"/>
+
+
+<h1 id="installation">2 Installation</h1>
+To install this plugin in your application, add the following to your BuildConfig.groovy file under the <code>plugins</code> setction<p class="paragraph"/><div class="code"><pre>grails.project.dependency.resolution = &#123;
+&#8230;
+	plugins &#123;
+	&#8230;
+		provided <span class="java&#45;quote">"&#58;deploy:0.1"</span>
+	&#8230;
+	&#125;
+&#8230;
+&#125;</pre></div>
+
+
+
+<h1 id="configuration">3 Configuration</h1>
+
+This plugin requires you to configure a destination container.  The default container used by the 'deployer' command is configured in your BuildConfig.groovy, or alternatively in your ~/.grails/settings.groovy file.<p class="paragraph"/><blockquote class="note">
+It is suggested that you keep at least the username and password in your ~/.grails/settings.groovy file so that it is not tied to your project source code.  This is a safer location, expecially if your source code is shared with others, or is an open source project.
+</blockquote><p class="paragraph"/><h2>Defaults</h2><p class="paragraph"/>The defaults settings should be enough to get most people up and running. These are the settings that are used when the <code>deployer</code> command is called without any arguments.<p class="paragraph"/><blockquote class="note">
+The following settings should be prefaced by: <code>grails.plugins.deploy.defaults.</code>  For example the <code>containerId</code> setting would become <code>grails.plugins.deploy.defaults.containerId</code>
+</blockquote><p class="paragraph"/><table class="wiki-table" cellpadding="0" cellspacing="0" border="0"><tr><th><strong class="bold">Option</strong></th><th><strong class="bold">Default Value</strong></th><th><strong class="bold">Description</strong></th></tr><tr class="table-odd"><td>containerId</td><td>'tomcat7x'</td><td>The container you are deploying to, such as Tomcat, Glassfish, JBoss, WebLogic, etc..</td></tr><tr class="table-even"><td>containerType</td><td>'remote'</td><td>The type of container connection.  'remote' should be fine for most scenarios.</td></tr><tr class="table-odd"><td>deployerType</td><td>'remote'</td><td>The type of deployer used to deploy the WAR file.  'remote' should be fine for most scenarios.</td></tr><tr class="table-even"><td>configurationType</td><td>'runtime'</td><td>The type of container configuration used.  'runtime' should be fine for most scenarios.</td></tr><tr class="table-odd"><td>propertySet</td><td><code>&#91;protocol:'http', hostname:'localhost', 'servlet.port': 8080 &#93;</code></td><td>a map containing all the properties to set for the configuration of the servlet container deployment.  See the section below regarding the options available for the <code>propertySet</code> configuration option.</td></tr></table><p class="paragraph"/><h3>containerId</h3><p class="paragraph"/>This must match the containerId of your servlet container from the <a href="http://cargo.codehaus.org/Containers" target="blank">list provided on the cargo site</a>.  The default containerId is 'tomcat7x'<p class="paragraph"/><h3>containerType</h3><p class="paragraph"/>One of 'remote', 'installed' or 'embedded'.  See the <a href="http://cargo.codehaus.org/maven-site/cargo-core/apidocs/org/codehaus/cargo/container/ContainerType.html" target="blank">class definition</a> for details.<p class="paragraph"/><h3>deployerType</h3><p class="paragraph"/>One of 'remote', 'installed' or 'embedded'.  See the <a href="http://cargo.codehaus.org/maven-site/cargo-core/apidocs/org/codehaus/cargo/container/deployer/DeployerType.html" target="blank">class definition</a> for details.<p class="paragraph"/><h3>configurationType</h3><p class="paragraph"/>One of 'runtime', 'existing' or 'standalone'.  See the <a href="http://cargo.codehaus.org/maven-site/cargo-core/apidocs/org/codehaus/cargo/container/configuration/ConfigurationType.html" target="blank">class definition</a> for details.<p class="paragraph"/>The use of anything other than 'runtime' is not recommended unless you know what you are doing.<p class="paragraph"/><h3>propertySet</h3><p class="paragraph"/>This is a map containing the cargo configuration properties that are used to connect to the container and deploy or control the WAR file or application.<p class="paragraph"/>Some common settings would look like
+<div class="code"><pre>grails.plugins.deploy.defaults.propertySet = &#91;
+			'remote.username': 'autodeployer',
+			'remote.password': 'UGheoqu0Washu2aa0Li1',
+			protocol: 'http',
+			hostname: 'localhost',
+			'servlet.port': 8080 &#93;</pre></div><p class="paragraph"/>For a complete list of properties, see the <a href="http://cargo.codehaus.org/maven-site/cargo-core/apidocs/constant-values.html" target="blank">cargo containt values page</a>. An alternate listing is available on the <a href="../guide/single.html#properties" class="guide">properties</a> page<p class="paragraph"/><h2>Destinations</h2><p class="paragraph"/>To manage configurations for more than one destination, you can set up a map containing destiniation specific settings.  This is useful for setting up a different configuration for testing vs. staging vs. production.  You can also set up configurations for multiple servers if you deploy your app to multiple production servers either for load balancing, or for geographical reasons.<p class="paragraph"/><blockquote class="note">
+You only need to set the options that are <strong class="bold">different</strong> than those set in your <code>grails.plugins.deploy.defaults</code> setting.  This will keep the size of your <code>destinations</code> settings down.
+</blockquote><p class="paragraph"/>An example configuration for a few different destinations would look like
+<div class="code"><pre>grails.plugins.deploy.destinations = &#91;
+	// staging deploy destination
+	staging: &#91;
+		propertySet: &#91;
+			protocol: 'https',
+			hostname: 'testing.example.org',
+			'servlet.port': 8443 &#93; &#93;,
+	// production deploy destination
+	production: &#91;
+		propertySet: &#91;
+			protocol: 'https',
+			hostname: 'www.example.org',
+			'servlet.port': 443 &#93; &#93;,
+	// local test server destination
+	testing: &#91;
+		containerId: 'tomcat6x',
+		propertySet: &#91;
+			'remote.username': 'deployer',
+			'hostname': '192.168.6.142',
+			'servlet.port': 80 &#93; &#93; &#93;</pre></div><p class="paragraph"/><h2>Groups</h2><p class="paragraph"/>The <code>grails.plugins.deploy.groups</code> setting lets you set up different groups you can use to deploy your application WAR file to.  The following example sets up an east coast and a west coast group.  These group names will then be passed to the &#45;&#45;destination-group command line parameter.<p class="paragraph"/><div class="code"><pre>grails.plugins.deploy.groups = &#91; 
+	westCoast: &#91; 'seattle', 'sandiego' &#93;,
+	eastCoast: &#91; 'maryland', 'newyork'&#93; &#93;</pre></div><p class="paragraph"/>Each of the destinations above would also need to have a corresponding entry in the <code>grails.plugins.deploy.destinations</code> configuration option.  For example:<p class="paragraph"/><div class="code"><pre>grails.plugins.deploy.destinations = &#91;
+	&#8230;
+	seattle: &#91;
+		propertySet: &#91; hostname: 'app&#45;seattle.example.org' &#93;
+   &#8230;
+   &#93;</pre></div><p class="paragraph"/>
+
+
+<h1 id="properties">4 PropertySet options</h1>
+
+The following propertySet options were pulled from the page:
+<a href="http://cargo.codehaus.org/maven-site/cargo-core/apidocs/constant-values.html" target="blank">http://cargo.codehaus.org/maven-site/cargo-core/apidocs/constant-values.html</a><p class="paragraph"/><blockquote class="note">
+If when using properties, please exclude the 'cargo.' prefix from the property name as this is automatically added.
+</blockquote>
+<ul class="star">
+<li>datasource.datasource</li>
+<li>datasource.driver</li>
+<li>datasource.id</li>
+<li>datasource.jndi</li>
+<li>datasource.password</li>
+<li>datasource.properties</li>
+<li>datasource.transactionsupport</li>
+<li>datasource.type</li>
+<li>datasource.url</li>
+<li>datasource.username</li>
+<li>geronimo.log.console</li>
+<li>geronimo.log.file</li>
+<li>geronimo.servlet.containerId</li>
+<li>geronimo.users</li>
+<li>glassfish.adminPort</li>
+<li>glassfish.domain.debug</li>
+<li>glassfish.domain.jmxPort</li>
+<li>glassfish.domain.name</li>
+<li>glassfish.http.ssl.port</li>
+<li>glassfish.java.debugger.port</li>
+<li>glassfish.jms.port</li>
+<li>glassfish.orb.listener.port</li>
+<li>glassfish.orb.mutualauth.port</li>
+<li>glassfish.orb.ssl.port</li>
+<li>glassfish.osgi.shell.telnet.port</li>
+<li>glassfish.portbase</li>
+<li>hostname</li>
+<li>java.home</li>
+<li>jboss.classloading.webservice.port</li>
+<li>jboss.clustered</li>
+<li>jboss.configuration</li>
+<li>jboss.ejb3.remoting.port</li>
+<li>jboss.invoker.pool.port</li>
+<li>jboss.jmx.port</li>
+<li>jboss.jrmp.invoker.port</li>
+<li>jboss.jrmp.port</li>
+<li>jboss.management.port</li>
+<li>jboss.naming.port</li>
+<li>jboss.osgi.http.port</li>
+<li>jboss.password</li>
+<li>jboss.profile</li>
+<li>jboss.remotedeploy.hostname</li>
+<li>jboss.remotedeploy.port</li>
+<li>jboss.remotedeploy.timeout</li>
+<li>jboss.remoting.transport.port</li>
+<li>jboss.transaction.recoveryManager.port</li>
+<li>jboss.transaction.statusManager.port</li>
+<li>jboss.user</li>
+<li>jetty.createContextXml</li>
+<li>jetty.deployer.url</li>
+<li>jetty.servlet.default.useFileMappedBuffer</li>
+<li>jetty.session.path</li>
+<li>jonas.cluster.name</li>
+<li>jonas.configurator.</li>
+<li>jonas.deployable.identifier</li>
+<li>jonas.domain.name</li>
+<li>jonas.jms.port</li>
+<li>jonas.jndi.initial.context.factory</li>
+<li>jonas.jndi.mejb.path</li>
+<li>jonas.mejb.jaas.entry</li>
+<li>jonas.mejb.jaas.file</li>
+<li>jonas.server.name</li>
+<li>jonas.services.list</li>
+<li>jonas.undeploy.ignoreVersion</li>
+<li>jrun.server.name</li>
+<li>jrun4x.classpath</li>
+<li>jrun4x.home</li>
+<li>jsr88.deploytoolclasspath</li>
+<li>jsr88.deploytooljar</li>
+<li>jsr88.password</li>
+<li>jsr88.user</li>
+<li>jvmargs</li>
+<li>logging</li>
+<li>oc4j.admin.pwd</li>
+<li>oc4j.auto-deploy.dir</li>
+<li>process.spawn</li>
+<li>protocol</li>
+<li>remote.password</li>
+<li>remote.uri</li>
+<li>remote.username</li>
+<li>resin.socketwait.port</li>
+<li>resource.class</li>
+<li>resource.name</li>
+<li>resource.parameters</li>
+<li>resource.resource</li>
+<li>resource.type</li>
+<li>rmi.port</li>
+<li>runtime.args</li>
+<li>servlet.port</li>
+<li>servlet.uriencoding</li>
+<li>servlet.users</li>
+<li>ssh.host</li>
+<li>ssh.keyfile</li>
+<li>ssh.password</li>
+<li>ssh.remotebase</li>
+<li>ssh.username</li>
+<li>standalone.ignoreNonExistingProperties</li>
+<li>tomcat.ajp.port</li>
+<li>tomcat.connector.emptySessionPath</li>
+<li>tomcat.context.reloadable</li>
+<li>tomcat.copywars</li>
+<li>tomcat.httpSecure</li>
+<li>tomcat.webappsDirectory</li>
+<li>weblogic.administrator.password</li>
+<li>weblogic.administrator.user</li>
+<li>weblogic.bea.home</li>
+<li>weblogic.configuration.version</li>
+<li>weblogic.deployable.folder</li>
+<li>weblogic.domain.version</li>
+<li>weblogic.logging</li>
+<li>weblogic.server</li>
+</ul><p class="paragraph"/>
+
+
+<h1 id="usage">5 Usage</h1>
+This plugin provides the script <a href="../ref/Scripts/deployer.html" class="Scripts">deployer</a> to be used from the command line, or from within the Grails interative mode.  Please see the command line usage for details.<p class="paragraph"/>For more advanced use, you can use the org.zirbes.grails.deploy.DeployerService to deploy WAR files from within your application, or from within your own Grails scripts.<p class="paragraph"/>Please see the groovy docs for more information on the <a href="../gapi/org/zirbes/grails/deploy/ConfigBuilder.html" class="api">ConfigBuilder</a> and <a href="../gapi/org/zirbes/grails/deploy/DeployerService.html" class="api">DeployerService</a> classes.
+
+
+                    </div>
+                </td>
+                <td id="col2">
+            <div class="local clearfix">
+                <div class="local-title">
+                    <a href="../guide/index.html" target="mainFrame">Quick Reference</a>
+                    <span class="toggle">(<a href="#" onclick="localToggle(); return false;">hide</a>)</span>
+                </div>
+                <div class="menu">
+                    
+                    <div class="menu-block"><h1 class="menu-title" onclick="toggleRef(this.parentNode.childNodes[1])">Scripts</h1><div class="menu-sub">
+                        
+                        
+                        <div class="menu-item"><a href="../ref/Scripts/deployer.html">deployer</a>
+                        </div>
+                        
+                        </div>
+                    </div>
+                    
+                </div>
+            </div>
+        </td>
+            </tr>
+        </table>
+
+        <div id="footer">
+            
+            
+        </div>
+
+
+
+<script type="text/javascript" src="../js/docs.js"></script>
+
+    </body>
+</html>

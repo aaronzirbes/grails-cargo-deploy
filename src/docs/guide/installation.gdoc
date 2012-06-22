@@ -1,0 +1,13 @@
+To install this plugin in your application, add the following to your BuildConfig.groovy file under the @plugins@ setction
+
+{code}
+grails.project.dependency.resolution = {
+...
+	plugins {
+	...
+		provided "\:deploy:0.1"
+	...
+	}
+...
+}
+{code}

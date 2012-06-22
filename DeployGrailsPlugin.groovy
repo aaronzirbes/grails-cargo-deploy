@@ -7,8 +7,8 @@ class DeployGrailsPlugin {
     def dependsOn = [:]
     // resources that are excluded from plugin packaging
     def pluginExcludes = [
-        "grails-app/views/error.gsp"
-    ]
+		'docs/**',
+		'src/docs/**' ]
 
     def title = "Deploy Plugin" // Headline display name of the plugin
     def author = "Aaron J. Zirbes"
@@ -16,7 +16,6 @@ class DeployGrailsPlugin {
     def description = '''\
 	This allows deployment of your grails applicaiton WAR file directly to an application server.
 This plugin uses the cargo libraries to deploy WAR files and manage servlet containers.  If you wish to check to see if your servlet container is supported, see: http://cargo.codehaus.org/
-Right now the plugin only supports Tomcat containers as that is all that I have running to test it against.
 '''
 
     // URL to the plugin's documentation

@@ -1,0 +1,175 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+    <title>3 Configuration 0.1</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <link rel="stylesheet" href="../css/main.css" type="text/css" media="screen, print" title="Style" charset="utf-8"/>
+    <link rel="stylesheet" href="../css/pdf.css" type="text/css" media="print" title="PDF" charset="utf-8"/>
+    <script type="text/javascript">
+function addJsClass() {
+    var classes = document.body.className.split(" ");
+    classes.push("js");
+    document.body.className = classes.join(" ");
+}
+    </script>
+</head>
+
+<body class="body" onload="addJsClass();">
+<div id="navigation">
+    <ul>
+        <li>
+            <div id="nav-summary" onmouseover="toggleNavSummary(false)" onmouseout="toggleNavSummary(true)">
+                <a href="../guide/index.html" class="button">Table of contents</a>
+
+                <div id="nav-summary-childs" style="display:none;">
+                    
+                    <div class="toc-item" style="margin-left:0"><a href="../guide/introduction.html"><strong>1</strong><span>Introduction</span></a>
+                    </div>
+                    
+                    <div class="toc-item" style="margin-left:0"><a href="../guide/installation.html"><strong>2</strong><span>Installation</span></a>
+                    </div>
+                    
+                    <div class="toc-item" style="margin-left:0"><a href="../guide/configuration.html"><strong>3</strong><span>Configuration</span></a>
+                    </div>
+                    
+                    <div class="toc-item" style="margin-left:0"><a href="../guide/properties.html"><strong>4</strong><span>PropertySet options</span></a>
+                    </div>
+                    
+                    <div class="toc-item" style="margin-left:0"><a href="../guide/usage.html"><strong>5</strong><span>Usage</span></a>
+                    </div>
+                    
+                </div>
+            </div>
+        </li>
+        <li class="separator selected">
+            <a id="ref-button" onclick="localToggle(); return false;" href="#">Quick Reference</a>
+        </li>
+    </ul>
+</div>
+<div id="header">
+    <div class="images clearfix">
+        
+        
+    </div>
+    <p>	This allows deployment of your grails applicaiton WAR file directly to an application server.
+This plugin uses the cargo libraries to deploy WAR files and manage servlet containers.  If you wish to check to see if your servlet container is supported, see: http://cargo.codehaus.org/
+</p>
+</div>
+
+
+<table id="colset" border="0" cellpadding="0" cellspacing="0">
+    <tr>
+        <td id="col1">
+            <div id="main" class="corner-all">
+
+                
+                    <div class="toc-item prev-left"><a href="../guide/installation.html">&lt;&lt; <strong>2</strong><span>Installation</span></a></div>
+                
+
+                <span id='toggle-col1' class="toggle">(<a href="#" onclick="localToggle(); return false;">Quick Reference</a>)</span>
+
+                
+                    <div class="toc-item next-right"><a href="../guide/properties.html"><strong>4</strong><span>PropertySet options</span> >></a></div>
+                
+
+
+                <div class="project">
+                    <h1>3 Configuration - Reference Documentation</h1>
+
+                    <p><strong>Authors:</strong> Aaron J. Zirbes</p>
+
+                    <p><strong>Version:</strong> 0.1</p>
+
+                    
+                </div>
+
+                
+
+                
+
+<h1 id="configuration">3 Configuration</h1>
+
+This plugin requires you to configure a destination container.  The default container used by the 'deployer' command is configured in your BuildConfig.groovy, or alternatively in your ~/.grails/settings.groovy file.<p class="paragraph"/><blockquote class="note">
+It is suggested that you keep at least the username and password in your ~/.grails/settings.groovy file so that it is not tied to your project source code.  This is a safer location, expecially if your source code is shared with others, or is an open source project.
+</blockquote><p class="paragraph"/><h2>Defaults</h2><p class="paragraph"/>The defaults settings should be enough to get most people up and running. These are the settings that are used when the <code>deployer</code> command is called without any arguments.<p class="paragraph"/><blockquote class="note">
+The following settings should be prefaced by: <code>grails.plugins.deploy.defaults.</code>  For example the <code>containerId</code> setting would become <code>grails.plugins.deploy.defaults.containerId</code>
+</blockquote><p class="paragraph"/><table class="wiki-table" cellpadding="0" cellspacing="0" border="0"><tr><th><strong class="bold">Option</strong></th><th><strong class="bold">Default Value</strong></th><th><strong class="bold">Description</strong></th></tr><tr class="table-odd"><td>containerId</td><td>'tomcat7x'</td><td>The container you are deploying to, such as Tomcat, Glassfish, JBoss, WebLogic, etc..</td></tr><tr class="table-even"><td>containerType</td><td>'remote'</td><td>The type of container connection.  'remote' should be fine for most scenarios.</td></tr><tr class="table-odd"><td>deployerType</td><td>'remote'</td><td>The type of deployer used to deploy the WAR file.  'remote' should be fine for most scenarios.</td></tr><tr class="table-even"><td>configurationType</td><td>'runtime'</td><td>The type of container configuration used.  'runtime' should be fine for most scenarios.</td></tr><tr class="table-odd"><td>propertySet</td><td><code>&#91;protocol:'http', hostname:'localhost', 'servlet.port': 8080 &#93;</code></td><td>a map containing all the properties to set for the configuration of the servlet container deployment.  See the section below regarding the options available for the <code>propertySet</code> configuration option.</td></tr></table><p class="paragraph"/><h3>containerId</h3><p class="paragraph"/>This must match the containerId of your servlet container from the <a href="http://cargo.codehaus.org/Containers" target="blank">list provided on the cargo site</a>.  The default containerId is 'tomcat7x'<p class="paragraph"/><h3>containerType</h3><p class="paragraph"/>One of 'remote', 'installed' or 'embedded'.  See the <a href="http://cargo.codehaus.org/maven-site/cargo-core/apidocs/org/codehaus/cargo/container/ContainerType.html" target="blank">class definition</a> for details.<p class="paragraph"/><h3>deployerType</h3><p class="paragraph"/>One of 'remote', 'installed' or 'embedded'.  See the <a href="http://cargo.codehaus.org/maven-site/cargo-core/apidocs/org/codehaus/cargo/container/deployer/DeployerType.html" target="blank">class definition</a> for details.<p class="paragraph"/><h3>configurationType</h3><p class="paragraph"/>One of 'runtime', 'existing' or 'standalone'.  See the <a href="http://cargo.codehaus.org/maven-site/cargo-core/apidocs/org/codehaus/cargo/container/configuration/ConfigurationType.html" target="blank">class definition</a> for details.<p class="paragraph"/>The use of anything other than 'runtime' is not recommended unless you know what you are doing.<p class="paragraph"/><h3>propertySet</h3><p class="paragraph"/>This is a map containing the cargo configuration properties that are used to connect to the container and deploy or control the WAR file or application.<p class="paragraph"/>Some common settings would look like
+<div class="code"><pre>grails.plugins.deploy.defaults.propertySet = &#91;
+			'remote.username': 'autodeployer',
+			'remote.password': 'UGheoqu0Washu2aa0Li1',
+			protocol: 'http',
+			hostname: 'localhost',
+			'servlet.port': 8080 &#93;</pre></div><p class="paragraph"/>For a complete list of properties, see the <a href="http://cargo.codehaus.org/maven-site/cargo-core/apidocs/constant-values.html" target="blank">cargo containt values page</a>. An alternate listing is available on the <a href="../guide/single.html#properties" class="guide">properties</a> page<p class="paragraph"/><h2>Destinations</h2><p class="paragraph"/>To manage configurations for more than one destination, you can set up a map containing destiniation specific settings.  This is useful for setting up a different configuration for testing vs. staging vs. production.  You can also set up configurations for multiple servers if you deploy your app to multiple production servers either for load balancing, or for geographical reasons.<p class="paragraph"/><blockquote class="note">
+You only need to set the options that are <strong class="bold">different</strong> than those set in your <code>grails.plugins.deploy.defaults</code> setting.  This will keep the size of your <code>destinations</code> settings down.
+</blockquote><p class="paragraph"/>An example configuration for a few different destinations would look like
+<div class="code"><pre>grails.plugins.deploy.destinations = &#91;
+	// staging deploy destination
+	staging: &#91;
+		propertySet: &#91;
+			protocol: 'https',
+			hostname: 'testing.example.org',
+			'servlet.port': 8443 &#93; &#93;,
+	// production deploy destination
+	production: &#91;
+		propertySet: &#91;
+			protocol: 'https',
+			hostname: 'www.example.org',
+			'servlet.port': 443 &#93; &#93;,
+	// local test server destination
+	testing: &#91;
+		containerId: 'tomcat6x',
+		propertySet: &#91;
+			'remote.username': 'deployer',
+			'hostname': '192.168.6.142',
+			'servlet.port': 80 &#93; &#93; &#93;</pre></div><p class="paragraph"/><h2>Groups</h2><p class="paragraph"/>The <code>grails.plugins.deploy.groups</code> setting lets you set up different groups you can use to deploy your application WAR file to.  The following example sets up an east coast and a west coast group.  These group names will then be passed to the &#45;&#45;destination-group command line parameter.<p class="paragraph"/><div class="code"><pre>grails.plugins.deploy.groups = &#91; 
+	westCoast: &#91; 'seattle', 'sandiego' &#93;,
+	eastCoast: &#91; 'maryland', 'newyork'&#93; &#93;</pre></div><p class="paragraph"/>Each of the destinations above would also need to have a corresponding entry in the <code>grails.plugins.deploy.destinations</code> configuration option.  For example:<p class="paragraph"/><div class="code"><pre>grails.plugins.deploy.destinations = &#91;
+	&#8230;
+	seattle: &#91;
+		propertySet: &#91; hostname: 'app&#45;seattle.example.org' &#93;
+   &#8230;
+   &#93;</pre></div><p class="paragraph"/>
+
+
+                <div style="clear:both;margin-top:15px;"></div>
+                
+                    <div class="toc-item prev-left"><a href="../guide/installation.html">&lt;&lt; <strong>2</strong><span>Installation</span></a></div>
+                
+                    <div class="toc-item next-right"><a href="../guide/properties.html"><strong>4</strong><span>PropertySet options</span> >></a></div>
+                
+                <div style="clear:both"></div>
+            </div>
+        </td>
+        <td id="col2">
+            <div class="local clearfix">
+                <div class="local-title">
+                    <a href="../guide/index.html" target="mainFrame">Quick Reference</a>
+                    <span class="toggle">(<a href="#" onclick="localToggle(); return false;">hide</a>)</span>
+                </div>
+                <div class="menu">
+                    
+                    <div class="menu-block"><h1 class="menu-title" onclick="toggleRef(this.parentNode.childNodes[1])">Scripts</h1><div class="menu-sub">
+                        
+                            
+                            <div class="menu-item"><a href="../ref/Scripts/deployer.html">deployer</a>
+                            </div>
+                            
+                            </div>
+                    </div>
+                    
+                </div>
+            </div>
+        </td>
+    </tr>
+</table>
+
+<div id="footer">
+    
+    
+</div>
+
+<script type="text/javascript" src="../js/docs.js"></script>
+
+</body>
+</html>

@@ -1,6 +1,6 @@
 // command line usage
 USAGE = """
-usage: grails deploy [options] [action]
+usage: grails deployer [options] [action]
 
 Actions
 -------
@@ -64,7 +64,7 @@ def deployAction = ''
 def deployConfigNames = [] as Set
 def deployConfig
 
-target(deploy: "Deploy a WAR file or manage a running servlet application") {
+target(deployer: "Deploy a WAR file or manage a running servlet application") {
 	// we need to load the app to get the cargo dependencies in memory
 	depends(loadApp)
 	// check for --non-interactive
@@ -103,7 +103,21 @@ target(deploy: "Deploy a WAR file or manage a running servlet application") {
 		// get the container deployable WAR
 		def deployableWar = deployerService.getWar(deployConfig, warFile)
 		// Run the action
-		deployerService.runAction(deployConfig, warFile, deployAction)
+		result = deployerService.runAction(deployConfig, warFile, deployAction)
+
+		if (deployAction == 'list') {
+		   	if (result) {
+				finalMessage "Deployed Apps"
+				finalMessage "============="
+				appList.each{ da ->
+					finalMessage "appName: ${da.appName}"
+					finalMessage "\tcontext: ${da.context}"
+					finalMessage "\tstatus: ${da.status}"
+				}
+			} else {
+				errorMessage "Failed to get deployed application status, read: ${result}"
+			}
+		}
 
 		def endTime = System.currentTimeMillis()
 		def elapsedTime = endTime - startTime
@@ -142,5 +156,5 @@ printMessage = { String message -> event('StatusUpdate', [message]) }
 /** Helper for printing error messages */
 errorMessage = { String message -> event('StatusError', [message]) }
 
-setDefaultTarget 'deploy'
+setDefaultTarget 'deployer'
 
