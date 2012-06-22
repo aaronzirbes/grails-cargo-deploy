@@ -11,38 +11,44 @@ class ConfigBuilder {
 	// 3. Defaults setting
 	// 4. Plugin default
 
-	static Map loadConfiguration(destination, argsMap, destConfigs) {
+	static def loadConfiguration(destination, argsMap, destConfigs) {
 
 		def deployConfig = [:]
+		deployConfig.propertySet = [:]
+		def buildConfig = destConfigs.destinations
+
 
 		// Start with build config defaults / plugin defaults
-		deployConfig.containerId = buildConfig.defaults.containerId ?: 'tomcat7x'
-		deployConfig.containerType = buildConfig.defaults.containerType ?: 'remote'
-		deployConfig.deployerType = buildConfig.defaults.deployerType ?: 'remote'
-		deployConfig.configurationType = buildConfig.defaults.configurationType ?: 'runtime'
-		deployConfig.properties = buildConfig.defaults.properties
+		deployConfig.containerId = destConfigs.defaults.containerId ?: 'tomcat7x'
+		deployConfig.containerType = destConfigs.defaults.containerType ?: 'remote'
+		deployConfig.deployerType = destConfigs.defaults.deployerType ?: 'remote'
+		deployConfig.configurationType = destConfigs.defaults.configurationType ?: 'runtime'
+		destConfigs.defaults.propertySet.each{ key, value ->
+			def propertyName = key.replaceFirst(/set-/,'').replaceAll(/-/,'.')
+			deployConfig.propertySet[propertyName] = value
+		}
 
 		// override with destination settings
-		deployConfig.containerId = buildConfig.defaults.containerId
-		deployConfig.containerType = buildConfig.defaults.containerType
-		deployConfig.deployerType = buildConfig.defaults.deployerType
-		deployConfig.configurationType = buildConfig.defaults.configurationType
+		deployConfig.containerId = buildConfig[destination].containerId
+		deployConfig.containerType = buildConfig[destination].containerType
+		deployConfig.deployerType = buildConfig[destination].deployerType
+		deployConfig.configurationType = buildConfig[destination].configurationType
+
 		// override destination settings
-		buildConfig.defaults.properties.each{ key, value ->
-			deployConfig.properties[key] = value
+		buildConfig[destination].propertySet.each{ key, value ->
+			def propertyName = key.replaceFirst(/set-/,'').replaceAll(/-/,'.')
+			deployConfig.propertySet[propertyName] = value
 		}
 
 		// override command line args
 		argsMap.each{ key, value ->
-			println "reading key/value: (${key}/${value})"
-			if (key.startsWith('--set-')) {
+			if (key.startsWith('set-')) {
 				// We found a property setting	
-				def propertyName = key.replaceFirst(/--set-/,'').replaceAll(/-/,'.')
-				println "converting key to propertyName: (${propertyName})"
-				deployConfig.properties[propertyName] = value
+				def propertyName = key.replaceFirst(/set-/,'').replaceAll(/-/,'.')
+				deployConfig.propertySet[propertyName] = value
 			}
 		}
 
-		return buildConfig
+		return deployConfig
 	}
 }

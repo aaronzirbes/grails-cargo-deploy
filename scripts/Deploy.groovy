@@ -60,9 +60,9 @@ includeTargets << grailsScript("_GrailsBootstrap")
 def deployDestination
 def deployDestinationGroup
 def deployWar
-def deployAction = 'deploy'
+def deployAction = ''
 def deployConfigNames = [] as Set
-def deployConfig = [:]
+def deployConfig
 
 target(deploy: "Deploy a WAR file or manage a running servlet application") {
 	// we need to load the app to get the cargo dependencies in memory
@@ -86,23 +86,27 @@ target(deploy: "Deploy a WAR file or manage a running servlet application") {
 	// pull config settings servlet container
 	def DeployerService = classLoader.loadClass("org.zirbes.grails.deploy.DeployerService")
 	def deployerService = DeployerService.newInstance()
-	def deployableWar = deployerService.getWar(warFile)
 
 	// dpeloy the app to the servlet container(s)
 	def j = deployDestinationGroup.size()
 	deployDestinationGroup.eachWithIndex{ dest, i ->
-		def startTime = new Timer()
+		def startTime = System.currentTimeMillis()
 		// run the action
 		printMessage "Running '${deployAction}' on '${warFile}' to '${dest}' (${i + 1}/$j)..."
 
 		// Load the cargo ant factory builder
 		def ConfigBuilder = classLoader.loadClass("org.zirbes.grails.deploy.ConfigBuilder")
+
 		// Instantiate the Config Builder
-		deployConfig = ConfigBuilder.loadConfiguration(dest, argsMap, grailsSettings.config.grails.plugins.deploy.destinations)
+		deployConfig = ConfigBuilder.loadConfiguration(dest, argsMap, grailsSettings.config.grails.plugins.deploy)
+
+		// get the container deployable WAR
+		def deployableWar = deployerService.getWar(deployConfig, warFile)
 		// Run the action
 		deployerService.runAction(deployConfig, warFile, deployAction)
 
-		def elapsedTime = ( new Timer() ) - startTime
+		def endTime = System.currentTimeMillis()
+		def elapsedTime = endTime - startTime
 		finalMessage "Finished '${deployAction}' on '${warFile}' to '${dest}' (${elapsedTime / 1000} s)."
 	}
 }
@@ -124,7 +128,8 @@ target(configureDeploySettings: "Configuring deployment settings") {
 	if (action && allowedActions.contains(action)) {
 		deployAction = action
 	} else {
-		errorMessage "Invalid deploy action: '${action}'."
+		// default action
+		action = 'deploy'
 	}
 
 }

@@ -17,13 +17,11 @@ import org.codehaus.cargo.generic.deployer.DefaultDeployerFactory
 
 class DeployerService {
 
-	private Map configuration
-
 	def getSettingConstantsLink() {
 		 return new URL('http://cargo.codehaus.org/maven-site/cargo-core/apidocs/constant-values.html')
 	}
 
-	def checkConfiguration(Map configuration) {
+	def checkConfiguration(configuration) {
 		def containerId = config.staging.containerId
 		def containerCompatability = new DefaultContainerCapabilityFactory().createContainerCapability(containerId)
 		
@@ -34,16 +32,17 @@ class DeployerService {
 		}
 	}
 
-	def getWar(Map configuration, File warFile) {
+	def getWar(configuration, File warFile) {
+		def containerId = configuration?.containerId ?: 'tomcat7x'
 		new DefaultDeployableFactory().createDeployable(containerId, warFile.absolutePath, DeployableType.WAR)
 	}
 
-	def getConfig(Map configuration) {
+	def getConfig(configuration) {
 		def containerId = configuration?.containerId ?: 'tomcat7x'
 		def containerType = configuration.containerType ?: 'remote'
 		def configurationType = configuration?.configurationType ?: 'runtime'
 
-		def configurationProperties = config.properties
+		def configurationProperties = configuration.propertySet
 
 		def containerTypeInstance = new ContainerType(containerType)
 		def configurationTypeInstance = new ConfigurationType(configurationType)
@@ -54,13 +53,14 @@ class DeployerService {
 
 		// Apply Configuration Settings
 		configurationProperties.each{ key, value ->
-			    containerConfig.setProperty(key.toString(), value.toString())
+			def prop = 'cargo.' + key.toString()
+			containerConfig.setProperty(prop, value.toString())
 		}
 
 		return containerConfig
 	}
 
-	def getContainer(Map configuration) {
+	def getContainer(configuration) {
 		def containerId = configuration?.containerId ?: 'tomcat7x'
 		def containerType = configuration.containerType ?: 'remote'
 
@@ -71,7 +71,7 @@ class DeployerService {
 		new DefaultContainerFactory().createContainer(containerId, containerTypeInstance, containerConfig)
 	}
 
-	def getDeployer(Map configuration) {
+	def getDeployer(configuration) {
 
 		def deployerType = configuration?.deployerType ?: 'remote'
 
@@ -79,12 +79,12 @@ class DeployerService {
 
 		def container = getContainer(configuration)
 
-		new DefaultDeployerFactory().createDeployer(tomcatContainer, deployerTypeInstance)
+		new DefaultDeployerFactory().createDeployer(container, deployerTypeInstance)
 	}
 
-	def runAction(Map configuration, File warFile, String action) {
+	def runAction(configuration, File warFile, String action) {
 		def deployer = getDeployer(configuration)
-		def war = getWar(warFile)
+		def war = getWar(configuration, warFile)
 
 		switch (action) {
 			case "deploy":
@@ -97,10 +97,10 @@ class DeployerService {
 				return deployer.start(war)
 				break
 			case "stop":
-				return deployer.start(war)
+				return deployer.stop(war)
 				break
 			case "undeploy":
-				return deployer.start(war)
+				return deployer.undeploy(war)
 				break
 			case "list":
 				return getDeployedApps(deployer)
