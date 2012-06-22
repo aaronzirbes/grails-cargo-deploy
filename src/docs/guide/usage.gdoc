@@ -1,5 +1,0 @@
-This plugin provides the script [deployer|Scripts] to be used from the command line, or from within the Grails interative mode.  Please see the command line usage for details.
-
-For more advanced use, you can use the org.zirbes.grails.deploy.DeployerService to deploy WAR files from within your application, or from within your own Grails scripts.
-
-Please see the groovy docs for more information on the [ConfigBuilder|api:org.zirbes.grails.deploy.ConfigBuilder] and [DeployerService|api:org.zirbes.grails.deploy.DeployerService] classes.
