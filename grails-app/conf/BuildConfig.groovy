@@ -21,10 +21,9 @@ grails.project.dependency.resolution = {
 		compile "org.codehaus.cargo:cargo-core:1.2.2"
 		compile "org.codehaus.cargo:cargo-core-uberjar:1.2.2"
     }
-
     plugins {
         build(":tomcat:$grailsVersion",
-              ":release:2.0.2") {
+              ":release:2.0.3") {
             export = false
         }
     }
