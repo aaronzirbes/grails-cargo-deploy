@@ -7,6 +7,7 @@ class DeployGrailsPlugin {
     def dependsOn = [:]
     // resources that are excluded from plugin packaging
     def pluginExcludes = [
+		'grails-app/conf/Config.groovy',
 		'docs/**',
 		'src/docs/**' ]
 

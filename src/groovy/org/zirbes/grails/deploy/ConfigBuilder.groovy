@@ -1,5 +1,7 @@
 package org.zirbes.grails.deploy
 
+import org.apache.log4j.Logger
+
 /** This class is used to ease the loading of configuration
  * settings coming from a heirarchy of locations.  Alternatively
  * use can use the  getDefaultConfiguration() method to get a
@@ -15,6 +17,8 @@ class ConfigBuilder {
 	// 3. Defaults setting
 	// 4. Plugin default
 
+	static log = Logger.getLogger(ConfigBuilder.class)
+
 	/** This returns a Map of settings used by the DeployerService to 
 	 *  configure containers and deployers for use in deploying war files
 	 *  and controlling applications already deployed to a container.
@@ -25,6 +29,10 @@ class ConfigBuilder {
 		deployConfig.propertySet = [:]
 		def buildConfig = destConfigs.destinations
 
+		log.debug "user configured defaults containerId: ${destConfigs.defaults.containerId}"
+		log.debug "user configured defaults containerType: ${destConfigs.defaults.containerType}"
+		log.debug "user configured defaults deployerType: ${destConfigs.defaults.deployerType}"
+		log.debug "user configured defaults deployerType: ${destConfigs.defaults.configurationType}"
 
 		// Start with build config defaults / plugin defaults
 		deployConfig.containerId = destConfigs.defaults.containerId ?: 'tomcat7x'
@@ -36,17 +44,31 @@ class ConfigBuilder {
 			deployConfig.propertySet[propertyName] = value
 		}
 
-		// override with destination settings
-		deployConfig.containerId = buildConfig[destination].containerId
-		deployConfig.containerType = buildConfig[destination].containerType
-		deployConfig.deployerType = buildConfig[destination].deployerType
-		deployConfig.configurationType = buildConfig[destination].configurationType
-
-		// override destination settings
-		buildConfig[destination].propertySet.each{ key, value ->
-			def propertyName = key.replaceFirst(/set-/,'').replaceAll(/-/,'.')
-			deployConfig.propertySet[propertyName] = value
+		log.debug "final default containerId: ${deployConfig.containerId}"
+		log.debug "final default containerType: ${deployConfig.containerType}"
+		log.debug "final default deployerType: ${deployConfig.deployerType}"
+		log.debug "final default configurationType: ${deployConfig.configurationType}"
+		// Set Configuration Properties
+		deployConfig.properttSet.each{ key, value ->
+			log.debug "final default propertySet:${key}=${value}"
 		}
+
+		// Load non-defaults (if destination is provided
+		log.debug "destination: '${destination}'"
+		if (destination != 'defaults') {
+			// override with destination settings
+			deployConfig.containerId = buildConfig[destination].containerId
+			deployConfig.containerType = buildConfig[destination].containerType
+			deployConfig.deployerType = buildConfig[destination].deployerType
+			deployConfig.configurationType = buildConfig[destination].configurationType
+
+			// override destination settings
+			buildConfig[destination].propertySet.each{ key, value ->
+				def propertyName = key.replaceFirst(/set-/,'').replaceAll(/-/,'.')
+				deployConfig.propertySet[propertyName] = value
+			}
+		}
+
 
 		// override command line args
 		argsMap.each{ key, value ->

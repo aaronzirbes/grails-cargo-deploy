@@ -76,7 +76,7 @@ target(deployer: "Deploy a WAR file or manage a running servlet application") {
 
 	// instantiate the war file
 	def warFile = new File(deployWar)
-	if (! warFile ) {
+	if (! warFile?.exists() ) {
 		errorMessage "Unable to find WAR file: ${deployWar}"
 		return 1
 	} else {
@@ -101,18 +101,15 @@ target(deployer: "Deploy a WAR file or manage a running servlet application") {
 		deployConfig = ConfigBuilder.loadConfiguration(dest, argsMap, grailsSettings.config.grails.plugins.deploy)
 
 		// get the container deployable WAR
+
 		def deployableWar = deployerService.getWar(deployConfig, warFile)
 		// Run the action
 		result = deployerService.runAction(deployConfig, warFile, deployAction)
 
 		if (deployAction == 'list') {
 		   	if (result) {
-				finalMessage "Deployed Apps"
-				finalMessage "============="
-				appList.each{ da ->
-					finalMessage "appName: ${da.appName}"
-					finalMessage "\tcontext: ${da.context}"
-					finalMessage "\tstatus: ${da.status}"
+				result.eachLine{ line ->
+					finalMessage line
 				}
 			} else {
 				errorMessage "Failed to get deployed application status, read: ${result}"
@@ -131,6 +128,8 @@ target(configureDeploySettings: "Configuring deployment settings") {
 	deployDestinationGroup = argsMap.'destination-group' ?: null
 	deployWar = argsMap.war ?: grailsSettings.projectWarFile.absolutePath
 	deployAction = argsMap.params[0]?.toLowerCase() ?: 'deploy'
+
+	printMessage "using WAR: ${deployWar}"
 
 	// If no set was loaded, load a set of a single config
 	if (!deployDestinationGroup) {

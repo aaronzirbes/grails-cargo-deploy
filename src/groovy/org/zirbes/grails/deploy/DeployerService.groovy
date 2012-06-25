@@ -1,5 +1,6 @@
 package org.zirbes.grails.deploy
 
+import org.apache.log4j.Logger
 import org.codehaus.cargo.container.Container
 import org.codehaus.cargo.container.ContainerException
 import org.codehaus.cargo.container.ContainerType
@@ -24,6 +25,8 @@ import org.codehaus.cargo.generic.deployer.DefaultDeployerFactory
  * More information about cargo can be found at http://cargo.codehaus.org
  */
 class DeployerService {
+
+	def log = Logger.getLogger(DeployerService.class)
 
 	/** Returns a URL listing all the available propertySet values you can use within a deployment destination */
 	def getSettingConstantsLink() {
@@ -57,22 +60,27 @@ class DeployerService {
 	 *  @param configuration a configuration object as returned by the ConfigurationBuilder.
 	 */
 	def getConfig(configuration) {
+
+		// Pull in config settings
 		def containerId = configuration?.containerId ?: 'tomcat7x'
 		def containerType = configuration.containerType ?: 'remote'
 		def configurationType = configuration?.configurationType ?: 'runtime'
-
 		def configurationProperties = configuration.propertySet
+		// If debugging is on, print out settings
+		log.debug "containerId: '${containerId}'"
+		log.debug "containerType: '${containerType}'"
+		log.debug "configurationType: '${configurationType}'"
 
+		// Instantiate container and config types
 		def containerTypeInstance = new ContainerType(containerType)
 		def configurationTypeInstance = new ConfigurationType(configurationType)
-
-
+		// Instantiate the configuration
 		def containerConfig = new DefaultConfigurationFactory()
 			.createConfiguration(containerId, containerTypeInstance, configurationTypeInstance)
-
-		// Apply Configuration Settings
+		// Set Configuration Properties
 		configurationProperties.each{ key, value ->
 			def prop = 'cargo.' + key.toString()
+			log.debug "containerConfig.setProperty(${prop}, ${value})"
 			containerConfig.setProperty(prop, value.toString())
 		}
 
@@ -101,6 +109,8 @@ class DeployerService {
 	def getDeployer(configuration) {
 
 		def deployerType = configuration?.deployerType ?: 'remote'
+
+		log.debug "deployerType: '${deployerType}'"
 
 		def deployerTypeInstance = new DeployerType(deployerType)
 
@@ -150,40 +160,12 @@ class DeployerService {
 	 *  @param deployer	a Deployer object that supports the .list() method.
 	 */
 	def getDeployedApps(deployer) {
-
-		Set<DeployedApp> appList = new HashSet<DeployedApp>()
-
 		if (deployer?.respondsTo('list')) {
-
-			def deployerList = deployer.list()
-			if (deployerList) {
-				def applications = deployerList.replace('\r','')?.split('\n')
-
-				String result = applications[0]
-				if (result.startsWith('OK -') ) {
-					//Success
-					applications.each{ line ->
-						def parts = line.split(':')
-						if (parts.length == 4) {
-							def appName = parts[3]
-							if (! appName.contains('/') ) {
-								def deployedApp = new DeployedApp()
-								deployedApp.context = parts[0]
-								deployedApp.appName = appName
-								deployedApp.status = parts[1]
-								
-								appList.add(deployedApp)
-							}
-						}
-					}
-				} else {
-					throw new ContainerException("Unable to parse .list() results for container.  Expected result to begin with 'OK -', but instead got: '${result}'.")
-				}
-			}
+			return deployer.list()
 		} else {
+			log.warn ".list() is not supported on this Deployer."
 			throw new ContainerException(".list() is not supported on this Deployer.")
 		}
-		return appList
 	}
 }
 

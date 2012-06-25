@@ -33,6 +33,8 @@ function addJsClass(el) {
                             
                             <div class="toc-item" style="margin-left:0"><a href="#usage"><strong>5</strong><span>Usage</span></a></div>
                             
+                            <div class="toc-item" style="margin-left:0"><a href="#debugging"><strong>6</strong><span>Debugging</span></a></div>
+                            
                         </div>
                     </div>
                 </li>
@@ -81,6 +83,8 @@ This plugin uses the cargo libraries to deploy WAR files and manage servlet cont
                             <div class="toc-item" style="margin-left:0px"><a href="#properties"><strong>4</strong><span>PropertySet options</span></a></div>
                             
                             <div class="toc-item" style="margin-left:0px"><a href="#usage"><strong>5</strong><span>Usage</span></a></div>
+                            
+                            <div class="toc-item" style="margin-left:0px"><a href="#debugging"><strong>6</strong><span>Debugging</span></a></div>
                             
                             <div style="clear:both" ></div>
                         </div>
@@ -281,6 +285,16 @@ If when using properties, please exclude the 'cargo.' prefix from the property n
 <h1 id="usage">5 Usage</h1>
 This plugin provides the script <a href="../ref/Scripts/deployer.html" class="Scripts">deployer</a> to be used from the command line, or from within the Grails interative mode.  Please see the command line usage for details.<p class="paragraph"/>For more advanced use, you can use the org.zirbes.grails.deploy.DeployerService to deploy WAR files from within your application, or from within your own Grails scripts.<p class="paragraph"/>Please see the groovy docs for more information on the <a href="../gapi/org/zirbes/grails/deploy/ConfigBuilder.html" class="api">ConfigBuilder</a> and <a href="../gapi/org/zirbes/grails/deploy/DeployerService.html" class="api">DeployerService</a> classes.
 
+
+
+<h1 id="debugging">6 Debugging</h1>
+You may enable debugging by enabling the debug log level in log4j in your Config.groovy (or equivalent) configuration file.<p class="paragraph"/><blockquote class="note">
+Warning, enabling debugging can potentially write passwords to your log files, so use this with caution.
+</blockquote><p class="paragraph"/><div class="code"><pre>log4j = &#123;
+	&#8230;
+	debug   'org.zirbes.grails.deploy'
+	&#8230;
+&#125;</pre></div><p class="paragraph"/>
 
                     </div>
                 </td>
