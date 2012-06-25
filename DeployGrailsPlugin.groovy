@@ -20,7 +20,7 @@ This plugin uses the cargo libraries to deploy WAR files and manage servlet cont
 '''
 
     // URL to the plugin's documentation
-    def documentation = "http://grails.org/plugin/deploy"
+	def documentation = "http://zirbes.org/grails-deploy/"
 
     // Extra (optional) plugin metadata
 
