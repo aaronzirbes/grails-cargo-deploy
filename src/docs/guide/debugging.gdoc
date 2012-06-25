@@ -1,0 +1,14 @@
+You may enable debugging by enabling the debug log level in log4j in your Config.groovy (or equivalent) configuration file.
+
+{note}
+Warning, enabling debugging can potentially write passwords to your log files, so use this with caution.
+{note}
+
+{code}
+log4j = {
+	...
+	debug   'org.zirbes.grails.deploy'
+	...
+}
+{code}
+
