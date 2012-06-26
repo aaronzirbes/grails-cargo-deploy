@@ -7,7 +7,7 @@ Actions
 
     start - Starts the application within the servlet container
     stop - Stops a running application within the servlet container
-    deploy - DEFAULT - Deploys a war file to a servlet container
+    deploy - (DEFAULT ACTION) Deploys a war file to a servlet container
     undelploy - Removes a running application from a servlet container
     redeploy - Undeploys an existing running application from a servlet
         container and deploys a replacement WAR file
@@ -32,7 +32,7 @@ Options
 		must be configured in your BuildConfig.groovy or settings.groovy
 		file.  See the documentation for details.
 
-    --help
+    --usage
 
 		display this help screen
 
@@ -123,6 +123,11 @@ target(deployer: "Deploy a WAR file or manage a running servlet application") {
 }
 
 target(configureDeploySettings: "Configuring deployment settings") {
+
+	if (argsMap.usage) {
+		finalMessage USAGE
+		return 0
+	}
 
 	deployDestination = argsMap.destination ?: 'defaults'
 	deployDestinationGroup = argsMap.'destination-group' ?: null
