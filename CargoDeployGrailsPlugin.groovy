@@ -1,4 +1,4 @@
-class DeployGrailsPlugin {
+class CargoDeployGrailsPlugin {
     // the plugin version
     def version = "0.1"
     // the version or versions of Grails the plugin is designed for
@@ -11,7 +11,7 @@ class DeployGrailsPlugin {
 		'docs/**',
 		'src/docs/**' ]
 
-    def title = "Deploy Plugin" // Headline display name of the plugin
+    def title = "Cargo Deploy Plugin" // Headline display name of the plugin
     def author = "Aaron J. Zirbes"
     def authorEmail = "aaron.zirbes@gmail.com"
     def description = '''\
@@ -20,7 +20,7 @@ This plugin uses the cargo libraries to deploy WAR files and manage servlet cont
 '''
 
     // URL to the plugin's documentation
-	def documentation = "http://zirbes.org/grails-deploy/"
+	def documentation = "http://zirbes.org/grails-cargo-deploy/"
 
     // Extra (optional) plugin metadata
 
@@ -31,9 +31,9 @@ This plugin uses the cargo libraries to deploy WAR files and manage servlet cont
 //    def developers = [ [ name: "Joe Bloggs", email: "joe@bloggs.net" ]]
 
     // Location of the plugin's issue tracker.
-    def issueManagement = [ system: "GitHub", url: "https://github.com/aaronzirbes/grails-deploy/issues" ]
+    def issueManagement = [ system: "GitHub", url: "https://github.com/aaronzirbes/grails-cargo-deploy/issues" ]
 
     // Online location of the plugin's browseable source code.
-    def scm = [ url: "https://github.com/aaronzirbes/grails-deploy" ]
+    def scm = [ url: "https://github.com/aaronzirbes/grails-cargo-deploy" ]
 
 }
